@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stock Monitor</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M3 24l8-9 6 5 12-14' fill='none' stroke='%2322c55e' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 24l8-9 6 5 12-14"/></svg>
+      <h1>Stock Monitor</h1>
+      <span id="mode-badge" class="badge">…</span>
+    </div>
+    <div class="status" id="status">
+      <span class="status-item" title="Upstream WebSocket"><span class="dot" id="ws-dot"></span><span id="ws-label">Connecting…</span></span>
+      <span class="status-item" title="REST calls used in the last 60 seconds">
+        API <span class="meter"><span id="rate-bar"></span></span> <span id="rate-label">0/5</span>
+      </span>
+      <span class="status-item muted" id="poll-label"></span>
+      <button class="ghost" data-open-settings type="button">Settings</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel watch">
+      <form id="add-form" class="add-form" autocomplete="off">
+        <select id="add-region" aria-label="Market"></select>
+        <input id="add-code" placeholder="Symbol, e.g. AAPL or 700" aria-label="Symbol code" required>
+        <button type="submit">Add</button>
+      </form>
+      <p id="add-error" class="form-error" hidden></p>
+
+      <div class="table-wrap">
+        <table class="watchlist">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th class="num">Last</th>
+              <th class="num">Change</th>
+              <th class="num hide-sm">Day range</th>
+              <th class="num hide-sm">Volume</th>
+              <th class="hide-sm">Feed</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="watch-body"></tbody>
+        </table>
+        <p id="empty" class="empty" hidden>Your watchlist is empty. Add a symbol above.</p>
+      </div>
+      <p class="hint" id="feed-hint"></p>
+    </section>
+
+    <section class="panel detail" id="detail" hidden>
+      <div class="detail-head">
+        <div>
+          <div class="detail-symbol"><span id="d-code"></span> <span class="region-tag" id="d-region"></span></div>
+          <div class="detail-name" id="d-name"></div>
+        </div>
+        <div class="detail-price">
+          <div id="d-last" class="big">—</div>
+          <div id="d-change" class="chg">—</div>
+        </div>
+      </div>
+
+      <div class="stats" id="d-stats"></div>
+
+      <div class="chart-bar">
+        <div class="seg" id="ktype" role="tablist">
+          <button data-k="1">1m</button>
+          <button data-k="2">5m</button>
+          <button data-k="3">15m</button>
+          <button data-k="5">1h</button>
+          <button data-k="8" class="active">1D</button>
+          <button data-k="9">1W</button>
+          <button data-k="10">1M</button>
+        </div>
+        <span class="muted small" id="chart-status"></span>
+      </div>
+      <div id="chart" class="chart"></div>
+
+      <div class="cols">
+        <div class="card">
+          <h2>Price alerts</h2>
+          <form id="alert-form" class="alert-form">
+            <label>Notify above <input type="number" step="any" min="0" id="alert-above" placeholder="—"></label>
+            <label>Notify below <input type="number" step="any" min="0" id="alert-below" placeholder="—"></label>
+            <button type="submit">Save</button>
+          </form>
+          <p class="muted small" id="alert-note">Alerts fire once when the price crosses the level, while this page is open.</p>
+        </div>
+        <div class="card">
+          <h2>Company</h2>
+          <dl class="info" id="d-info"><dd class="muted">Loading…</dd></dl>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="settings" class="settings">
+    <form method="dialog" id="settings-form">
+      <h2>Settings</h2>
+      <label class="field">
+        <span>iTick API token</span>
+        <div class="row">
+          <input type="password" id="set-token" placeholder="Paste your token" autocomplete="off" spellcheck="false">
+          <button type="button" class="ghost" id="clear-token">Clear</button>
+        </div>
+        <small class="muted">Get one free at <a href="https://itick.org" target="_blank" rel="noopener">itick.org</a>. It is saved only in this browser and sent only to api.itick.org. Leave it empty for demo mode.</small>
+      </label>
+      <div class="grid3">
+        <label class="field"><span>API calls / min</span><input type="number" id="set-rate" min="1"></label>
+        <label class="field"><span>Live stream slots</span><input type="number" id="set-subs" min="0"></label>
+        <label class="field"><span>Refresh every (s)</span><input type="number" id="set-poll" min="10"></label>
+      </div>
+      <small class="muted">The defaults match iTick's free plan (5 calls/min, 3 stream slots). Raise them on a paid plan.</small>
+      <div class="actions">
+        <button type="submit" value="cancel" class="ghost" formnovalidate>Cancel</button>
+        <button type="submit" value="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script src="app.js" type="module"></script>
+</body>
+</html>
